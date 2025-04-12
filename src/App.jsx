@@ -11,6 +11,8 @@ import BrowseEnterprises from './pages/BrowseEnterprises'
 import EnterpriseDetails from './pages/EnterpriseDetails'
 import Profile from './pages/Profile'
 
+export const baseUrl = 'http://localhost:3000';
+
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
 
@@ -29,9 +31,10 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/browse" element={<BrowseEnterprises />} />
+              <Route path="/dashboard/:id" element={<Dashboard />} />
+              <Route path="/browse/:id" element={<BrowseEnterprises />} />
               <Route path="/enterprise/:id" element={<EnterpriseDetails />} />
+
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>

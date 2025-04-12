@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import axios from 'axios';
+import { baseUrl } from '../App'
 
 const industries = [
   'AgriTech',
@@ -16,25 +19,46 @@ const industries = [
 ]
 
 const investmentScales = [
-  { value: 'micro', label: 'Micro ($1,000 - $5,000)' },
-  { value: 'small', label: 'Small ($5,000 - $15,000)' },
-  { value: 'medium', label: 'Medium ($15,000 - $50,000)' },
+  { value: 'micro', label: 'Micro (1 Lakh - 5 Lakh)' },
+  { value: 'small', label: 'Small (5 Lakh - 30 Lakh)' },
+  { value: 'medium', label: 'Medium (30 Lakh - 1 Cr)' },
 ]
 
 function Register() {
-  const { register, handleSubmit, formState: { errors } } = useForm()
+  const { register, handleSubmit, watch, formState: { errors } } = useForm()
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   const onSubmit = async (data) => {
     setIsLoading(true)
     try {
-      // TODO: Implement actual registration logic
-      console.log('Registration data:', data)
+      // Prepare the data object to match the schema
+      const investorData = {
+        id: data.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password, // Sending plain password
+        industryInterests: data.industries || [],
+        investmentScale: data.investmentScale,
+        isActive: true
+      }
+      
+      // Send the data to the API using axios instead of fetch
+      localStorage.setItem('investor', firstName+' '+lastName);
+      localStorage.setItem("id", data.id);
+      const response = await axios.post(`${baseUrl}/investors/register`, investorData);
+      
       toast.success('Registration successful!')
-      navigate('/dashboard')
+      navigate('/dashboard/' + response.data.id)
     } catch (error) {
-      toast.error('Registration failed. Please try again.')
+      // Axios error handling
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+      toast.error(`Registration failed: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -132,8 +156,75 @@ function Register() {
                   <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
                 )}
               </div>
-            </div>
 
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register('password', { 
+                      required: 'Password is required',
+                      minLength: {
+                        value: 8,
+                        message: 'Password must be at least 8 characters'
+                      }
+                    })}
+                    className="input-field pr-10"
+                  />
+                  <button 
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    {...register('confirmPassword', { 
+                      required: 'Please confirm your password',
+                      validate: value => 
+                        value === watch('password') || 'Passwords do not match'
+                    })}
+                    className="input-field pr-10"
+                  />
+                  <button 
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowConfirmPassword(prev => !prev)}
+                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+            </div>
             {/* Investment Preferences */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">

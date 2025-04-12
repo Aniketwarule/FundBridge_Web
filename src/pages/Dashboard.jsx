@@ -1,65 +1,110 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { CurrencyDollarIcon, UserGroupIcon, ChartBarIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline'
+import { CurrencyDollarIcon, UserGroupIcon, ChartBarIcon, ArrowTrendingUpIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { useParams } from 'react-router-dom'
+import { baseUrl } from '../App'
+import axios from 'axios'
 
-const mockData = {
-  stats: [
-    { id: 1, name: 'Total Invested', value: '$45,000', icon: CurrencyDollarIcon, change: '+12.5%', changeType: 'increase' },
-    { id: 2, name: 'Active Investments', value: '12', icon: ChartBarIcon, change: '+2', changeType: 'increase' },
-    { id: 3, name: 'Enterprises Funded', value: '8', icon: UserGroupIcon, change: '+1', changeType: 'increase' },
-    { id: 4, name: 'Average ROI', value: '15.2%', icon: ArrowTrendingUpIcon, change: '+2.3%', changeType: 'increase' },
-  ],
-  portfolioPerformance: [
-    { month: 'Jan', value: 30000 },
-    { month: 'Feb', value: 32000 },
-    { month: 'Mar', value: 35000 },
-    { month: 'Apr', value: 34000 },
-    { month: 'May', value: 38000 },
-    { month: 'Jun', value: 42000 },
-    { month: 'Jul', value: 45000 },
-  ],
-  recentActivities: [
-    {
-      id: 1,
-      type: 'investment',
-      description: 'New investment in TechFarm Solutions',
-      amount: '$5,000',
-      date: '2024-03-15',
-    },
-    {
-      id: 2,
-      type: 'return',
-      description: 'Quarterly return from EcoGrow',
-      amount: '$750',
-      date: '2024-03-10',
-    },
-    {
-      id: 3,
-      type: 'milestone',
-      description: 'GreenHarvest reached revenue milestone',
-      date: '2024-03-05',
-    },
-  ],
-}
+function InvestorDashboard() {
+  const id = localStorage.getItem("id");
+  const [investor, setInvestor] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-function Dashboard() {
-  const [timeRange, setTimeRange] = useState('7d')
+  useEffect(() => {
+    const fetchInvestor = async () => {
+      try {
+        setLoading(true)
+        const response = await axios.get(`${baseUrl}/investors/${id}`)
+        setInvestor(response.data)
+        setLoading(false)
+      } catch (err) {
+        console.error("Error fetching investor data:", err)
+        setError("Failed to load investor data")
+        setLoading(false)
+      }
+    }
+    
+    fetchInvestor()
+  }, [id])
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-64">Loading investor data...</div>
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>
+  }
+
+  if (!investor) {
+    return <div className="text-center p-4">No investor data found</div>
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Investment Dashboard
+          Investor Dashboard
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Track your investment portfolio and performance
+          Manage your profile and track your investments
         </p>
+      </div>
+
+      {/* Investor Profile */}
+      <div className="card mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Investor Profile
+          </h2>
+          <button className="flex items-center text-primary-600 hover:text-primary-700">
+            <PencilIcon className="h-4 w-4 mr-1" />
+            <span>Edit Profile</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</h3>
+              <p className="mt-1 text-base text-gray-900 dark:text-white">
+                {investor.firstName} {investor.lastName}
+              </p>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</h3>
+              <p className="mt-1 text-base text-gray-900 dark:text-white">{investor.email}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</h3>
+              <p className="mt-1 text-base text-gray-900 dark:text-white">{investor.phone}</p>
+            </div>
+          </div>
+          <div>
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Investment Scale</h3>
+              <p className="mt-1 text-base text-gray-900 dark:text-white">{investor.investmentScale}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Industry Interests</h3>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {investor.industryInterests && investor.industryInterests.map((industry, index) => (
+                  <span 
+                    key={index} 
+                    className="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-primary-900 dark:text-primary-300"
+                  >
+                    {industry}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {mockData.stats.map((stat) => (
+        {investor.stats && investor.stats.map((stat) => (
           <motion.div
             key={stat.id}
             className="card"
@@ -75,7 +120,14 @@ function Dashboard() {
                 </p>
               </div>
               <div className="bg-primary-100 dark:bg-primary-900 p-3 rounded-full">
-                <stat.icon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                {stat.iconType === 'currency' && 
+                  <CurrencyDollarIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />}
+                {stat.iconType === 'chart' && 
+                  <ChartBarIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />}
+                {stat.iconType === 'users' && 
+                  <UserGroupIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />}
+                {stat.iconType === 'trend' && 
+                  <ArrowTrendingUpIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />}
               </div>
             </div>
             <div className="mt-4">
@@ -90,55 +142,13 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* Portfolio Performance Chart */}
-      <div className="card mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Portfolio Performance
-          </h2>
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="input-field w-auto"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="1m">Last month</option>
-            <option value="3m">Last 3 months</option>
-            <option value="1y">Last year</option>
-          </select>
-        </div>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mockData.portfolioPerformance}>
-              <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0284c7" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#0284c7" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#0284c7"
-                fillOpacity={1}
-                fill="url(#colorValue)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
       {/* Recent Activities */}
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
           Recent Activities
         </h2>
         <div className="space-y-4">
-          {mockData.recentActivities.map((activity) => (
+          {investor.recentActivities && investor.recentActivities.map((activity) => (
             <motion.div
               key={activity.id}
               className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -167,4 +177,4 @@ function Dashboard() {
   )
 }
 
-export default Dashboard
+export default InvestorDashboard

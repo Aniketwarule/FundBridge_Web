@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { baseUrl } from '../App'
+import axios from 'axios'
+
+
 
 function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -11,11 +15,25 @@ function Login() {
 
   const onSubmit = async (data) => {
     setIsLoading(true)
+
+    const payload = {
+      email: data.email,
+      password: data.password,
+    };
+    
     try {
-      // TODO: Implement actual login logic
-      console.log('Login data:', data)
+      const response = await axios.post(`${baseUrl}/investors/login`, payload);
+      // Store user info in localStorage or context if needed
+      localStorage.setItem('user', JSON.stringify({
+        id: response.data.id,
+        email: data.email,
+        role: "investor"
+      }));
+
       toast.success('Successfully logged in!')
-      navigate('/dashboard')
+      localStorage.setItem('investor', response.firstName+' '+response.lastName);
+      localStorage.setItem('id', response.data.id);
+      navigate('/dashboard/' + response.data.id)
     } catch (error) {
       toast.error('Login failed. Please try again.')
     } finally {
