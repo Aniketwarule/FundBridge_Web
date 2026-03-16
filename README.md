@@ -47,6 +47,3 @@ To get this project up and running on your local machine, follow these steps:
 * Node.js (v16 or higher)
 * MongoDB (Local instance or MongoDB Atlas URI)
 * React Native development environment (Android Studio / Xcode)
-```bash
-git clone [https://github.com/yourusername/fundbridge.git](https://github.com/yourusername/fundbridge.git)
-cd fundbridge
